@@ -1,0 +1,33 @@
+<body class="bg-dark text-white">
+
+<%- include('navbar') %>
+
+<div class="container mt-4">
+
+<h2>📊 Dashboard</h2>
+
+<table class="table table-dark table-striped mt-3">
+<thead>
+<tr>
+<th>ID</th>
+<th>Image</th>
+<th>Label</th>
+<th>Time</th>
+</tr>
+</thead>
+
+<tbody>
+<% data.forEach(item => { %>
+<tr>
+<td><%= item.id %></td>
+<td><img src="http://localhost:5000/<%= item.file_path %>" width="100"></td>
+<td class="text-success"><%= item.label %></td>
+<td><%= item.timestamp %></td>
+</tr>
+<% }) %>
+</tbody>
+
+</table>
+
+</div>
+</body>
