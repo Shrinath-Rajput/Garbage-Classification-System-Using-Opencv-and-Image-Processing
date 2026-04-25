@@ -14,7 +14,10 @@ def home():
 
 @app.route("/predict", methods=["POST"])
 def predict():
-    file = request.files["image"]
+    file = request.files.get("image")
+
+    if not file:
+        return jsonify({"error": "No file"}), 400
 
     filename = datetime.datetime.now().strftime("%Y%m%d%H%M%S") + ".jpg"
     path = os.path.join(UPLOAD_FOLDER, filename)
@@ -33,4 +36,5 @@ def uploaded_file(filename):
     return send_from_directory(UPLOAD_FOLDER, filename)
 
 if __name__ == "__main__":
-    app.run(port=5000, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
