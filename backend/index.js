@@ -25,6 +25,7 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: "50mb" }));
 
+// static
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // upload folder
@@ -33,18 +34,16 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const upload = multer({ dest: uploadDir });
 
-// ================== SAFE ROUTES ==================
-app.get("/test", (req, res) => {
-    res.send("Server Working ✅");
-});
+// ================== ROUTES ==================
 
-// 🔥 IMPORTANT (no crash)
+// HOME
 app.get("/", (req, res) => {
-    res.send("🚀 Website Live Working");
+    res.render("home");
 });
 
+// PREDICT PAGE
 app.get("/predict", (req, res) => {
-    res.send("Predict Page Working");
+    res.render("index");
 });
 
 // ================== PREDICT ==================
@@ -54,6 +53,7 @@ app.post("/predict", upload.single("image"), async (req, res) => {
 
         const filePath = req.file.path;
 
+        // FAKE AI (stable)
         const labels = ["plastic", "metal", "paper", "glass", "trash"];
         const randomLabel = labels[Math.floor(Math.random() * labels.length)];
 
@@ -68,12 +68,47 @@ app.post("/predict", upload.single("image"), async (req, res) => {
             [data.file_name, data.file_path, data.label]
         );
 
-        res.json(data); // 🔥 no EJS (safe)
+        res.render("result", { result: data });
 
     } catch (err) {
         console.log(err);
         res.send("Error: " + err.message);
     }
+});
+
+// ================== DASHBOARD ==================
+app.get("/dashboard", (req, res) => {
+    db.all("SELECT * FROM garbage_images ORDER BY id DESC", [], (err, rows) => {
+        if (err) return res.send("DB Error");
+        res.render("dashboard", { data: rows });
+    });
+});
+
+// ================== RECORDS ==================
+app.get("/records", (req, res) => {
+    db.all("SELECT label, COUNT(*) as count FROM garbage_images GROUP BY label", [], (err, rows) => {
+
+        if (err) return res.send("DB Error");
+
+        const labels = rows.map(r => r.label);
+        const counts = rows.map(r => r.count);
+
+        res.render("records", { labels, counts });
+    });
+});
+
+// ================== DELETE ==================
+app.get("/delete/:id", (req, res) => {
+    db.run("DELETE FROM garbage_images WHERE id = ?", [req.params.id], () => {
+        res.redirect("/dashboard");
+    });
+});
+
+// ================== CLEAR ==================
+app.get("/clear", (req, res) => {
+    db.run("DELETE FROM garbage_images", () => {
+        res.redirect("/dashboard");
+    });
 });
 
 // ================== SERVER ==================
