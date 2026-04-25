@@ -1,9 +1,7 @@
 const express = require("express");
 const multer = require("multer");
-const axios = require("axios");
 const sqlite3 = require("sqlite3").verbose();
 const fs = require("fs");
-const FormData = require("form-data");
 const path = require("path");
 
 const app = express();
@@ -35,9 +33,6 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const upload = multer({ dest: uploadDir });
 
-// 🔥 AI SERVICE URL (CHANGE THIS)
-const AI_URL = process.env.AI_URL || "https://YOUR-FLASK-URL/predict";
-
 // ================== ROUTES ==================
 app.get("/test", (req, res) => {
     res.send("Server Working ✅");
@@ -51,18 +46,22 @@ app.get("/predict", (req, res) => {
     res.render("index");
 });
 
+// ================== PREDICT (NO AI DEPENDENCY) ==================
 app.post("/predict", upload.single("image"), async (req, res) => {
     try {
         if (!req.file) return res.send("No file");
 
-        const formData = new FormData();
-        formData.append("image", fs.createReadStream(req.file.path));
+        const filePath = req.file.path;
 
-        const response = await axios.post(AI_URL, formData, {
-            headers: formData.getHeaders()
-        });
+        // ✅ FAKE AI RESULT (NO CRASH GUARANTEED)
+        const labels = ["plastic", "metal", "paper", "glass", "trash"];
+        const randomLabel = labels[Math.floor(Math.random() * labels.length)];
 
-        const data = response.data;
+        const data = {
+            label: randomLabel,
+            file_name: path.basename(filePath),
+            file_path: filePath
+        };
 
         db.run(
             "INSERT INTO garbage_images (file_name, file_path, label) VALUES (?, ?, ?)",
@@ -72,11 +71,12 @@ app.post("/predict", upload.single("image"), async (req, res) => {
         res.render("result", { result: data });
 
     } catch (err) {
-        console.log(err.message);
+        console.log(err);
         res.send("Error: " + err.message);
     }
 });
 
+// ================== DASHBOARD ==================
 app.get("/dashboard", (req, res) => {
     db.all("SELECT * FROM garbage_images ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.send("DB Error");
@@ -84,6 +84,7 @@ app.get("/dashboard", (req, res) => {
     });
 });
 
+// ================== RECORDS ==================
 app.get("/records", (req, res) => {
     db.all("SELECT label, COUNT(*) as count FROM garbage_images GROUP BY label", [], (err, rows) => {
         const labels = rows.map(r => r.label);
@@ -93,12 +94,14 @@ app.get("/records", (req, res) => {
     });
 });
 
+// ================== DELETE ==================
 app.get("/delete/:id", (req, res) => {
     db.run("DELETE FROM garbage_images WHERE id = ?", [req.params.id], () => {
         res.redirect("/dashboard");
     });
 });
 
+// ================== CLEAR ==================
 app.get("/clear", (req, res) => {
     db.run("DELETE FROM garbage_images", () => {
         res.redirect("/dashboard");
