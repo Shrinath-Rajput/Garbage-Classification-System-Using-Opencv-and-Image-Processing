@@ -13,7 +13,6 @@ body{background:#0f172a;color:white;text-align:center;}
 
 <body>
 
-    <!-- NAVBAR -->
 <nav class="navbar navbar-expand-lg navbar-dark px-4" style="background:#111827;">
     <a class="navbar-brand" href="/">♻️ Garbage AI</a>
 
@@ -30,14 +29,12 @@ body{background:#0f172a;color:white;text-align:center;}
 <h2>🧠 Detection Result</h2>
 
 <div class="info-box">
-<p>
-AI successfully analyzed the image and classified garbage type.
-</p>
+<p>AI successfully analyzed the image.</p>
 </div>
 
 <h3 class="text-success mt-3"><%= result.label %></h3>
 
-<img src="http://localhost:5000/<%= result.file_path %>" width="300" class="mt-3 rounded">
+<img src="/uploads/<%= result.file_name %>" width="300" class="mt-3 rounded">
 
 <br>
 

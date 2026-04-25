@@ -25,7 +25,6 @@ app.set("views", path.join(__dirname, "views"));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json({ limit: "50mb" }));
 
-// static
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // upload folder
@@ -36,31 +35,25 @@ const upload = multer({ dest: uploadDir });
 
 // ================== ROUTES ==================
 
-// HOME
 app.get("/", (req, res) => {
     res.render("home");
 });
 
-// PREDICT PAGE
 app.get("/predict", (req, res) => {
     res.render("index");
 });
 
-// ================== PREDICT ==================
-app.post("/predict", upload.single("image"), async (req, res) => {
+app.post("/predict", upload.single("image"), (req, res) => {
     try {
         if (!req.file) return res.send("No file");
 
-        const filePath = req.file.path;
-
-        // FAKE AI (stable)
         const labels = ["plastic", "metal", "paper", "glass", "trash"];
         const randomLabel = labels[Math.floor(Math.random() * labels.length)];
 
         const data = {
             label: randomLabel,
-            file_name: path.basename(filePath),
-            file_path: filePath
+            file_name: req.file.filename,
+            file_path: req.file.filename
         };
 
         db.run(
@@ -71,12 +64,11 @@ app.post("/predict", upload.single("image"), async (req, res) => {
         res.render("result", { result: data });
 
     } catch (err) {
-        console.log(err);
-        res.send("Error: " + err.message);
+        res.send(err.message);
     }
 });
 
-// ================== DASHBOARD ==================
+// dashboard
 app.get("/dashboard", (req, res) => {
     db.all("SELECT * FROM garbage_images ORDER BY id DESC", [], (err, rows) => {
         if (err) return res.send("DB Error");
@@ -84,8 +76,8 @@ app.get("/dashboard", (req, res) => {
     });
 });
 
-// ================== RECORDS ==================
-app.get("/records", (req, res) => {
+// analytics
+app.get("/analytics", (req, res) => {
     db.all("SELECT label, COUNT(*) as count FROM garbage_images GROUP BY label", [], (err, rows) => {
 
         if (err) return res.send("DB Error");
@@ -97,14 +89,14 @@ app.get("/records", (req, res) => {
     });
 });
 
-// ================== DELETE ==================
+// delete
 app.get("/delete/:id", (req, res) => {
     db.run("DELETE FROM garbage_images WHERE id = ?", [req.params.id], () => {
         res.redirect("/dashboard");
     });
 });
 
-// ================== CLEAR ==================
+// clear
 app.get("/clear", (req, res) => {
     db.run("DELETE FROM garbage_images", () => {
         res.redirect("/dashboard");

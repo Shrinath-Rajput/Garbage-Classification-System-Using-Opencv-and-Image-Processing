@@ -13,7 +13,7 @@ body{background:#0f172a;color:white;}
 </head>
 
 <body>
-    <!-- NAVBAR -->
+
 <nav class="navbar navbar-expand-lg navbar-dark px-4" style="background:#111827;">
     <a class="navbar-brand" href="/">♻️ Garbage AI</a>
 
@@ -32,7 +32,6 @@ body{background:#0f172a;color:white;}
 <div class="info">
 <p>
 This dashboard shows all detected garbage records stored in database.
-You can monitor, delete or clear history.
 </p>
 </div>
 
@@ -47,7 +46,6 @@ onclick="return confirm('Clear all records?')">⚠️ Clear All</a>
 <th>ID</th>
 <th>Image</th>
 <th>Label</th>
-<th>Time</th>
 <th>Action</th>
 </tr>
 </thead>
@@ -56,9 +54,13 @@ onclick="return confirm('Clear all records?')">⚠️ Clear All</a>
 <% data.forEach(item => { %>
 <tr>
 <td><%= item.id %></td>
-<td><img src="http://localhost:5000/<%= item.file_path %>" width="80"></td>
+
+<td>
+<img src="/uploads/<%= item.file_name %>" width="80">
+</td>
+
 <td><%= item.label %></td>
-<td><%= item.timestamp %></td>
+
 <td>
 <a href="/delete/<%= item.id %>" class="btn btn-danger btn-sm">Delete</a>
 </td>
@@ -70,21 +72,6 @@ onclick="return confirm('Clear all records?')">⚠️ Clear All</a>
 
 <a href="/" class="btn btn-secondary mt-4">⬅ Back</a>
 
-</div>
-
-<!-- EXTRA SCROLL CONTENT -->
-<div class="container section">
-<h3>📌 Insights</h3>
-<p>
-Dashboard helps track garbage trends and improve waste management decisions.
-</p>
-</div>
-
-<div class="container section">
-<h3>🚀 Future Improvements</h3>
-<p>
-Real AI model integration, smart bin recommendation, and mobile app integration.
-</p>
 </div>
 
 <footer class="text-center p-3">
