@@ -43,17 +43,40 @@ app.get("/predict", (req, res) => {
     res.render("index");
 });
 
+// 🔥 FINAL PREDICT (UPLOAD + CAMERA BOTH)
 app.post("/predict", upload.single("image"), (req, res) => {
     try {
-        if (!req.file) return res.send("No file");
+        let fileName;
 
+        // 📸 File upload
+        if (req.file) {
+            fileName = req.file.filename;
+        }
+
+        // 📷 Camera base64
+        else if (req.body.imageData) {
+            const base64Data = req.body.imageData.replace(/^data:image\/jpeg;base64,/, "");
+            fileName = Date.now() + ".jpg";
+
+            fs.writeFileSync(
+                path.join(uploadDir, fileName),
+                base64Data,
+                "base64"
+            );
+        }
+
+        else {
+            return res.send("❌ No image received");
+        }
+
+        // 🎯 Fake AI result
         const labels = ["plastic", "metal", "paper", "glass", "trash"];
         const randomLabel = labels[Math.floor(Math.random() * labels.length)];
 
         const data = {
             label: randomLabel,
-            file_name: req.file.filename,
-            file_path: req.file.filename
+            file_name: fileName,
+            file_path: "uploads/" + fileName
         };
 
         db.run(
@@ -64,6 +87,7 @@ app.post("/predict", upload.single("image"), (req, res) => {
         res.render("result", { result: data });
 
     } catch (err) {
+        console.log(err);
         res.send(err.message);
     }
 });
