@@ -39,6 +39,9 @@ const upload = multer({ dest: uploadDir });
 const AI_URL = process.env.AI_URL || "https://YOUR-FLASK-URL/predict";
 
 // ================== ROUTES ==================
+app.get("/test", (req, res) => {
+    res.send("Server Working ✅");
+});
 
 app.get("/", (req, res) => {
     res.render("home");
