@@ -33,27 +33,27 @@ if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir);
 
 const upload = multer({ dest: uploadDir });
 
-// ================== ROUTES ==================
+// ================== SAFE ROUTES ==================
 app.get("/test", (req, res) => {
     res.send("Server Working ✅");
 });
 
+// 🔥 IMPORTANT (no crash)
 app.get("/", (req, res) => {
-    res.render("home");
+    res.send("🚀 Website Live Working");
 });
 
 app.get("/predict", (req, res) => {
-    res.render("index");
+    res.send("Predict Page Working");
 });
 
-// ================== PREDICT (NO AI DEPENDENCY) ==================
+// ================== PREDICT ==================
 app.post("/predict", upload.single("image"), async (req, res) => {
     try {
         if (!req.file) return res.send("No file");
 
         const filePath = req.file.path;
 
-        // ✅ FAKE AI RESULT (NO CRASH GUARANTEED)
         const labels = ["plastic", "metal", "paper", "glass", "trash"];
         const randomLabel = labels[Math.floor(Math.random() * labels.length)];
 
@@ -68,7 +68,7 @@ app.post("/predict", upload.single("image"), async (req, res) => {
             [data.file_name, data.file_path, data.label]
         );
 
-        res.render("result", { result: data });
+        res.json(data); // 🔥 no EJS (safe)
 
     } catch (err) {
         console.log(err);
@@ -76,41 +76,9 @@ app.post("/predict", upload.single("image"), async (req, res) => {
     }
 });
 
-// ================== DASHBOARD ==================
-app.get("/dashboard", (req, res) => {
-    db.all("SELECT * FROM garbage_images ORDER BY id DESC", [], (err, rows) => {
-        if (err) return res.send("DB Error");
-        res.render("dashboard", { data: rows });
-    });
-});
-
-// ================== RECORDS ==================
-app.get("/records", (req, res) => {
-    db.all("SELECT label, COUNT(*) as count FROM garbage_images GROUP BY label", [], (err, rows) => {
-        const labels = rows.map(r => r.label);
-        const counts = rows.map(r => r.count);
-
-        res.render("records", { labels, counts });
-    });
-});
-
-// ================== DELETE ==================
-app.get("/delete/:id", (req, res) => {
-    db.run("DELETE FROM garbage_images WHERE id = ?", [req.params.id], () => {
-        res.redirect("/dashboard");
-    });
-});
-
-// ================== CLEAR ==================
-app.get("/clear", (req, res) => {
-    db.run("DELETE FROM garbage_images", () => {
-        res.redirect("/dashboard");
-    });
-});
-
 // ================== SERVER ==================
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
     console.log("🚀 Server running on port", PORT);
 });
